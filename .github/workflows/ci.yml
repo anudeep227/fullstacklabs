@@ -1,37 +1,43 @@
-name: CI (PR)
+name: CI Pipeline
 
 on:
   pull_request:
-    types: [opened, synchronize, reopened]
+    branches:
+      - "**"
+  push:
+    branches:
+      - main
 
 jobs:
-  ci:
+  build:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
+
+    defaults:
+      run:
+        working-directory: codebase/rdicidr-0.1.0
+
     steps:
-      - name: Checkout
+      - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Use Node 18
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 18
-          cache: 'npm'
+          node-version: "18"
+          cache: "npm"
+          cache-dependency-path: codebase/rdicidr-0.1.0/package-lock.json
 
-      - name: Install deps
-        run: npm ci
+      - name: Install dependencies
+        run: npm install
 
-      - name: Lint (ESLint)
+      - name: Run ESLint
         run: npm run lint
 
-      - name: Prettier (check)
-        run: npm run prettier:check
+      - name: Run Prettier
+        run: npm run prettier
 
-      - name: Test (Jest)
-        env:
-          CI: "true"
-        run: npm test
+      - name: Run Tests (Jest via React Scripts)
+        run: CI=true npm test -- --watchAll=false
 
-      - name: Build
+      - name: Build application
         run: npm run build
